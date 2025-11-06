@@ -1,9 +1,36 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Plus, BookOpen, Search, Upload, Download, Loader2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Plus, BookOpen, Search, Upload, Download, Loader2, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -13,29 +40,86 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { fetchDisciplinas } from "@/lib/api";
-
-interface Disciplina {
-  id: string;
-  codigo: string;
-  nome: string;
-  carga_horaria: number;
-  departamento: string;
-  area: {
-    id: string;
-    nome: string;
-  };
-}
+import { toast } from "sonner";
+import { fetchDisciplinas, createDisciplina, fetchAreas, deleteDisciplina } from "@/lib/api";
 
 export default function Disciplinas() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [formData, setFormData] = useState({
+    nome: "",
+    carga_horaria: "",
+    area_id: "",
+    nivel_esperado: "3",
+  });
+
+  const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['disciplinas'],
-    queryFn: () => fetchDisciplinas({ per_page: 100 }), // Fetch more items to enable local search
+    queryFn: () => fetchDisciplinas({ per_page: 100 }),
+  });
+
+  const { data: areasData, isLoading: isLoadingAreas } = useQuery({
+    queryKey: ['areas'],
+    queryFn: () => fetchAreas({ per_page: 100 }),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: createDisciplina,
+    onSuccess: () => {
+      toast.success("Disciplina criada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['disciplinas'] });
+      handleCloseDialog();
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao criar disciplina: ${error.message}`);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteDisciplina,
+    onSuccess: () => {
+      toast.success("Disciplina excluída com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['disciplinas'] });
+      setDeletingId(null);
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao excluir disciplina: ${error.message}`);
+      setDeletingId(null);
+    },
   });
 
   const disciplinas = data?.data || [];
+  const areas = areasData?.data || [];
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setFormData({
+      nome: "",
+      carga_horaria: "",
+      area_id: "",
+      nivel_esperado: "3",
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const payload = {
+      nome: formData.nome,
+      carga_horaria: Number(formData.carga_horaria),
+      area_id: Number(formData.area_id),
+      nivel_esperado: Number(formData.nivel_esperado),
+    };
+
+    createMutation.mutate(payload);
+  };
+
+  const handleDelete = (id: number) => {
+    deleteMutation.mutate(id);
+  };
 
   const filteredDisciplinas = disciplinas.filter(
     (d) =>
@@ -83,10 +167,120 @@ export default function Disciplinas() {
             <Download className="mr-2 h-4 w-4" />
             Exportar
           </Button>
-          <Button className="bg-primary hover:bg-primary/90">
-            <Plus className="mr-2 h-4 w-4" />
-            Nova Disciplina
-          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-primary hover:bg-primary/90">
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Disciplina
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Criar Nova Disciplina</DialogTitle>
+                <DialogDescription>
+                  Preencha os dados da nova disciplina
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit}>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="nome">Nome da Disciplina</Label>
+                    <Input
+                      id="nome"
+                      placeholder="Ex: Programação Python"
+                      value={formData.nome}
+                      onChange={(e) =>
+                        setFormData({ ...formData, nome: e.target.value })
+                      }
+                      required
+                      autoFocus
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="carga_horaria">Carga Horária (horas)</Label>
+                    <Input
+                      id="carga_horaria"
+                      type="number"
+                      placeholder="Ex: 64"
+                      value={formData.carga_horaria}
+                      onChange={(e) =>
+                        setFormData({ ...formData, carga_horaria: e.target.value })
+                      }
+                      required
+                      min="1"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="area_id">Área de Competência</Label>
+                    <Select
+                      value={formData.area_id}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, area_id: value })
+                      }
+                      required
+                    >
+                      <SelectTrigger id="area_id">
+                        <SelectValue placeholder="Selecione uma área" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {isLoadingAreas ? (
+                          <SelectItem value="loading" disabled>
+                            <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
+                            Carregando áreas...
+                          </SelectItem>
+                        ) : areas.length === 0 ? (
+                          <SelectItem value="empty" disabled>
+                            Nenhuma área cadastrada
+                          </SelectItem>
+                        ) : (
+                          areas.map((area) => (
+                            <SelectItem key={area.id} value={area.id.toString()}>
+                              {area.nome}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="nivel_esperado">Nível Esperado</Label>
+                    <Select
+                      value={formData.nivel_esperado}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, nivel_esperado: value })
+                      }
+                    >
+                      <SelectTrigger id="nivel_esperado">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Ensino Médio</SelectItem>
+                        <SelectItem value="1">Graduado</SelectItem>
+                        <SelectItem value="2">Especialista</SelectItem>
+                        <SelectItem value="3">Mestre</SelectItem>
+                        <SelectItem value="4">Doutor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    type="submit"
+                    disabled={createMutation.isPending || !formData.area_id}
+                  >
+                    {createMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Criando...
+                      </>
+                    ) : (
+                      "Criar Disciplina"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -187,9 +381,19 @@ export default function Disciplinas() {
                       </TableCell>
                       <TableCell>{disciplina.carga_horaria}h</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
-                          Editar
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="sm">
+                            Editar
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-destructive hover:text-destructive-foreground"
+                            onClick={() => setDeletingId(Number(disciplina.id))}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -199,6 +403,34 @@ export default function Disciplinas() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deletingId !== null} onOpenChange={(open) => !open && setDeletingId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta disciplina? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletingId && handleDelete(deletingId)}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                "Excluir"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

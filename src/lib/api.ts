@@ -48,6 +48,45 @@ export async function fetchDisciplinas(params: DisciplinasParams = {}): Promise<
   return response.json();
 }
 
+export interface CreateDisciplinaData {
+  nome: string;
+  carga_horaria: number;
+  area_id: number;
+  nivel_esperado: number;
+}
+
+export async function createDisciplina(data: CreateDisciplinaData): Promise<Disciplina> {
+  const url = `${API_BASE_URL}/api/disciplinas`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to create disciplina: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function deleteDisciplina(id: number): Promise<void> {
+  const url = `${API_BASE_URL}/api/disciplinas/${id}`;
+
+  const response = await fetch(url, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to delete disciplina: ${response.statusText}`);
+  }
+}
+
 export async function fetchSemestres(params: DisciplinasParams = {}): Promise<ApiResponse<Semestre[]>> {
   const { page = 1, per_page = 10 } = params;
   const url = new URL(`${API_BASE_URL}/api/semestres`);
