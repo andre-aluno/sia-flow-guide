@@ -245,3 +245,58 @@ export async function deleteArea(id: number): Promise<void> {
   }
 }
 
+// Professores API
+export interface Professor {
+  id: number;
+  nome: string;
+  nivel: number;
+  titulacao: string;
+  modelo_contratacao: string;
+  carga_maxima: string;
+  areas: Area[];
+}
+
+export async function fetchProfessores(params: DisciplinasParams = {}): Promise<ApiResponse<Professor[]>> {
+  const { page = 1, per_page = 100 } = params;
+  const url = new URL(`${API_BASE_URL}/api/professores`);
+
+  url.searchParams.set('page', page.toString());
+  url.searchParams.set('per_page', per_page.toString());
+
+  const response = await fetch(url.toString());
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch professores: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export interface CreateProfessorData {
+  nome: string;
+  nivel: number;
+  titulacao: string;
+  modelo_contratacao: string;
+  carga_maxima: string;
+  area_ids: number[];
+}
+
+export async function createProfessor(data: CreateProfessorData): Promise<Professor> {
+  const url = `${API_BASE_URL}/api/professores`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to create professor: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
