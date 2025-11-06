@@ -14,13 +14,23 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Users, Search, Upload, Download, Loader2, Edit2 } from "lucide-react";
+import { Plus, Users, Search, Upload, Download, Loader2, Edit2, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -33,12 +43,13 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { fetchProfessores, createProfessor, fetchAreas, updateProfessor, CreateProfessorData, Professor } from "@/lib/api";
+import { fetchProfessores, createProfessor, fetchAreas, updateProfessor, deleteProfessor, CreateProfessorData, Professor } from "@/lib/api";
 
 export default function Professores() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     nome: "",
     titulacao: "Mestre",
@@ -79,6 +90,19 @@ export default function Professores() {
     },
     onError: (error: Error) => {
       toast.error(`Erro ao atualizar professor: ${error.message}`);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteProfessor,
+    onSuccess: () => {
+      toast.success("Professor excluído com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['professores'] });
+      setDeletingId(null);
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao excluir professor: ${error.message}`);
+      setDeletingId(null);
     },
   });
 
@@ -149,6 +173,10 @@ export default function Professores() {
     } else {
       createMutation.mutate(payload);
     }
+  };
+
+  const handleDelete = (id: number) => {
+    deleteMutation.mutate(id);
   };
 
   const filteredProfessores = professores.filter(
@@ -460,14 +488,24 @@ export default function Professores() {
                       </TableCell>
                       <TableCell>{parseFloat(professor.carga_maxima).toFixed(0)}h</TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(professor)}
-                        >
-                          <Edit2 className="h-4 w-4 mr-1" />
-                          Editar
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEdit(professor)}
+                          >
+                            <Edit2 className="h-4 w-4 mr-1" />
+                            Editar
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-destructive hover:text-destructive-foreground"
+                            onClick={() => setDeletingId(professor.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -477,6 +515,34 @@ export default function Professores() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deletingId !== null} onOpenChange={(open) => !open && setDeletingId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este professor? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletingId && handleDelete(deletingId)}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                "Excluir"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

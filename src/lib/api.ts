@@ -321,3 +321,16 @@ export async function updateProfessor(id: number, data: CreateProfessorData): Pr
   return response.json();
 }
 
+export async function deleteProfessor(id: number): Promise<void> {
+  const url = `${API_BASE_URL}/api/professores/${id}`;
+
+  const response = await fetch(url, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to delete professor: ${response.statusText}`);
+  }
+}
+
