@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, BookOpen, Search, Upload, Download, Loader2, Trash2 } from "lucide-react";
+import { Plus, BookOpen, Search, Upload, Download, Loader2, Trash2, Edit2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -41,11 +41,23 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { fetchDisciplinas, createDisciplina, fetchAreas, deleteDisciplina } from "@/lib/api";
+import { fetchDisciplinas, createDisciplina, fetchAreas, deleteDisciplina, updateDisciplina, CreateDisciplinaData } from "@/lib/api";
+
+interface Disciplina {
+  id: string;
+  nome: string;
+  carga_horaria: number;
+  nivel_esperado?: number;
+  area: {
+    id: string;
+    nome: string;
+  };
+}
 
 export default function Disciplinas() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     nome: "",
@@ -78,6 +90,18 @@ export default function Disciplinas() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: CreateDisciplinaData }) => updateDisciplina(id, data),
+    onSuccess: () => {
+      toast.success("Disciplina atualizada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['disciplinas'] });
+      handleCloseDialog();
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao atualizar disciplina: ${error.message}`);
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: deleteDisciplina,
     onSuccess: () => {
@@ -96,12 +120,24 @@ export default function Disciplinas() {
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
+    setEditingId(null);
     setFormData({
       nome: "",
       carga_horaria: "",
       area_id: "",
       nivel_esperado: "3",
     });
+  };
+
+  const handleEdit = (disciplina: Disciplina) => {
+    setEditingId(Number(disciplina.id));
+    setFormData({
+      nome: disciplina.nome,
+      carga_horaria: disciplina.carga_horaria.toString(),
+      area_id: disciplina.area.id.toString(),
+      nivel_esperado: disciplina.nivel_esperado?.toString() || "3",
+    });
+    setIsDialogOpen(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -114,7 +150,11 @@ export default function Disciplinas() {
       nivel_esperado: Number(formData.nivel_esperado),
     };
 
-    createMutation.mutate(payload);
+    if (editingId) {
+      updateMutation.mutate({ id: editingId, data: payload });
+    } else {
+      createMutation.mutate(payload);
+    }
   };
 
   const handleDelete = (id: number) => {
@@ -176,9 +216,9 @@ export default function Disciplinas() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Criar Nova Disciplina</DialogTitle>
+                <DialogTitle>{editingId ? "Editar Disciplina" : "Criar Nova Disciplina"}</DialogTitle>
                 <DialogDescription>
-                  Preencha os dados da nova disciplina
+                  {editingId ? "Atualize os dados da disciplina" : "Preencha os dados da nova disciplina"}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit}>
@@ -266,15 +306,15 @@ export default function Disciplinas() {
                 <DialogFooter>
                   <Button
                     type="submit"
-                    disabled={createMutation.isPending || !formData.area_id}
+                    disabled={createMutation.isPending || updateMutation.isPending || !formData.area_id}
                   >
-                    {createMutation.isPending ? (
+                    {createMutation.isPending || updateMutation.isPending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Criando...
+                        {editingId ? "Atualizando..." : "Criando..."}
                       </>
                     ) : (
-                      "Criar Disciplina"
+                      editingId ? "Salvar Alterações" : "Criar Disciplina"
                     )}
                   </Button>
                 </DialogFooter>
@@ -382,7 +422,12 @@ export default function Disciplinas() {
                       <TableCell>{disciplina.carga_horaria}h</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="sm">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEdit(disciplina)}
+                          >
+                            <Edit2 className="h-4 w-4 mr-1" />
                             Editar
                           </Button>
                           <Button

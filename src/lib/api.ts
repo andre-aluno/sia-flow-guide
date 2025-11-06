@@ -74,6 +74,25 @@ export async function createDisciplina(data: CreateDisciplinaData): Promise<Disc
   return response.json();
 }
 
+export async function updateDisciplina(id: number, data: CreateDisciplinaData): Promise<Disciplina> {
+  const url = `${API_BASE_URL}/api/disciplinas/${id}`;
+
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to update disciplina: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
 export async function deleteDisciplina(id: number): Promise<void> {
   const url = `${API_BASE_URL}/api/disciplinas/${id}`;
 
