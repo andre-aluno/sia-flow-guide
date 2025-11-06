@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Users, Search, Upload, Download, Loader2 } from "lucide-react";
+import { Plus, Users, Search, Upload, Download, Loader2, Edit2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -32,17 +32,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import { fetchProfessores, createProfessor, fetchAreas } from "@/lib/api";
+import { fetchProfessores, createProfessor, fetchAreas, updateProfessor, CreateProfessorData, Professor } from "@/lib/api";
 
 export default function Professores() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     nome: "",
     titulacao: "Mestre",
@@ -74,6 +70,18 @@ export default function Professores() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: CreateProfessorData }) => updateProfessor(id, data),
+    onSuccess: () => {
+      toast.success("Professor atualizado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['professores'] });
+      handleCloseDialog();
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao atualizar professor: ${error.message}`);
+    },
+  });
+
   const professores = data?.data || [];
   const areas = areasData?.data || [];
 
@@ -92,12 +100,24 @@ export default function Professores() {
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
+    setEditingId(null);
     setFormData({
       nome: "",
       titulacao: "Mestre",
       modelo_contratacao: "Mensalista ",
       area_ids: [],
     });
+  };
+
+  const handleEdit = (professor: Professor) => {
+    setEditingId(professor.id);
+    setFormData({
+      nome: professor.nome,
+      titulacao: professor.titulacao,
+      modelo_contratacao: professor.modelo_contratacao,
+      area_ids: professor.areas.map((area) => area.id),
+    });
+    setIsDialogOpen(true);
   };
 
   const handleAreaToggle = (areaId: number) => {
@@ -124,7 +144,11 @@ export default function Professores() {
       area_ids: formData.area_ids,
     };
 
-    createMutation.mutate(payload);
+    if (editingId) {
+      updateMutation.mutate({ id: editingId, data: payload });
+    } else {
+      createMutation.mutate(payload);
+    }
   };
 
   const filteredProfessores = professores.filter(
@@ -193,9 +217,9 @@ export default function Professores() {
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Criar Novo Professor</DialogTitle>
+                <DialogTitle>{editingId ? "Editar Professor" : "Criar Novo Professor"}</DialogTitle>
                 <DialogDescription>
-                  Preencha os dados do novo professor
+                  {editingId ? "Atualize os dados do professor" : "Preencha os dados do novo professor"}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit}>
@@ -296,15 +320,15 @@ export default function Professores() {
                 <DialogFooter>
                   <Button
                     type="submit"
-                    disabled={createMutation.isPending || !formData.nome}
+                    disabled={createMutation.isPending || updateMutation.isPending || !formData.nome}
                   >
-                    {createMutation.isPending ? (
+                    {createMutation.isPending || updateMutation.isPending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Criando...
+                        {editingId ? "Atualizando..." : "Criando..."}
                       </>
                     ) : (
-                      "Criar Professor"
+                      editingId ? "Salvar Alterações" : "Criar Professor"
                     )}
                   </Button>
                 </DialogFooter>
@@ -436,7 +460,12 @@ export default function Professores() {
                       </TableCell>
                       <TableCell>{parseFloat(professor.carga_maxima).toFixed(0)}h</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(professor)}
+                        >
+                          <Edit2 className="h-4 w-4 mr-1" />
                           Editar
                         </Button>
                       </TableCell>

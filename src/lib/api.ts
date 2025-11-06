@@ -300,3 +300,24 @@ export async function createProfessor(data: CreateProfessorData): Promise<Profes
   return response.json();
 }
 
+export async function updateProfessor(id: number, data: CreateProfessorData): Promise<Professor> {
+  const url = `${API_BASE_URL}/api/professores/${id}`;
+
+  console.log(data)
+
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to update professor: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
