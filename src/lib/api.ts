@@ -334,3 +334,77 @@ export async function deleteProfessor(id: number): Promise<void> {
   }
 }
 
+// Ofertas API
+export interface Oferta {
+  id: number;
+  turma: string;
+  disciplina: {
+    id: number;
+    nome: string;
+    carga_horaria: string;
+    nivel_esperado: number;
+  };
+  semestre: {
+    id: number;
+    nome: string;
+    ano: number;
+    periodo: string;
+    data_inicio: string;
+    data_fim: string;
+  };
+}
+
+export async function fetchOfertas(params: DisciplinasParams = {}): Promise<ApiResponse<Oferta[]>> {
+  const { page = 1, per_page = 100 } = params;
+  const url = new URL(`${API_BASE_URL}/api/ofertas`);
+
+  url.searchParams.set('page', page.toString());
+  url.searchParams.set('per_page', per_page.toString());
+
+  const response = await fetch(url.toString());
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ofertas: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export interface CreateOfertaData {
+  disciplina_id: number;
+  semestre_id: number;
+  turma: string;
+}
+
+export async function createOferta(data: CreateOfertaData): Promise<Oferta> {
+  const url = `${API_BASE_URL}/api/ofertas`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to create oferta: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function deleteOferta(id: number): Promise<void> {
+  const url = `${API_BASE_URL}/api/ofertas/${id}`;
+
+  const response = await fetch(url, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to delete oferta: ${response.statusText}`);
+  }
+}
+
