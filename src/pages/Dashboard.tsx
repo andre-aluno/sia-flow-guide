@@ -17,11 +17,12 @@ import {
 
 const steps = [
   { id: 1, name: "Semestre", description: "Criar ou selecionar" },
-  { id: 2, name: "Disciplinas", description: "Cadastrar ou importar" },
-  { id: 3, name: "Professores", description: "Cadastrar ou importar" },
-  { id: 4, name: "Ofertas", description: "Gerar ofertas" },
-  { id: 5, name: "Alocação", description: "Executar algoritmo" },
-  { id: 6, name: "Resultado", description: "Ajustar e salvar" },
+  { id: 2, name: "Áreas", description: "Cadastrar áreas" },
+  { id: 3, name: "Disciplinas", description: "Cadastrar ou importar" },
+  { id: 4, name: "Professores", description: "Cadastrar ou importar" },
+  { id: 5, name: "Ofertas", description: "Gerar ofertas" },
+  { id: 6, name: "Alocação", description: "Executar algoritmo" },
+  { id: 7, name: "Resultado", description: "Ajustar e salvar" },
 ];
 
 const stats = [

@@ -109,3 +109,81 @@ export async function updateSemestre(id: number, data: CreateSemestreData): Prom
 
   return response.json();
 }
+
+// Areas API
+export interface Area {
+  id: number;
+  nome: string;
+}
+
+export async function fetchAreas(params: DisciplinasParams = {}): Promise<ApiResponse<Area[]>> {
+  const { page = 1, per_page = 100 } = params;
+  const url = new URL(`${API_BASE_URL}/api/areas`);
+
+  url.searchParams.set('page', page.toString());
+  url.searchParams.set('per_page', per_page.toString());
+
+  const response = await fetch(url.toString());
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch areas: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export interface CreateAreaData {
+  nome: string;
+}
+
+export async function createArea(data: CreateAreaData): Promise<Area> {
+  const url = `${API_BASE_URL}/api/areas`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to create area: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function updateArea(id: number, data: CreateAreaData): Promise<Area> {
+  const url = `${API_BASE_URL}/api/areas/${id}`;
+
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to update area: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function deleteArea(id: number): Promise<void> {
+  const url = `${API_BASE_URL}/api/areas/${id}`;
+
+  const response = await fetch(url, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to delete area: ${response.statusText}`);
+  }
+}
+

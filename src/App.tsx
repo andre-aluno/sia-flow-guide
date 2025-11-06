@@ -11,6 +11,7 @@ import Professores from "./pages/Professores";
 import Ofertas from "./pages/Ofertas";
 import Alocacao from "./pages/Alocacao";
 import Resultados from "./pages/Resultados";
+import Areas from "./pages/Areas";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/semestres" element={<Semestres />} />
+            <Route path="/areas" element={<Areas />} />
             <Route path="/disciplinas" element={<Disciplinas />} />
             <Route path="/professores" element={<Professores />} />
             <Route path="/ofertas" element={<Ofertas />} />
