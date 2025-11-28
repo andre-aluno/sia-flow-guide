@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here.
 All colors MUST be HSL.
 */
 
@@ -47,7 +47,7 @@ All colors MUST be HSL.
     --ring: 214 84% 56%;
 
     --radius: 0.75rem;
-    
+
     /* Custom tokens */
     --gradient-primary: linear-gradient(135deg, hsl(214 84% 56%), hsl(214 84% 70%));
     --gradient-accent: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 76% 50%));
@@ -124,3 +124,76 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom animations for AI processing */
+@keyframes ai-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes neural-activity {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateX(0) scale(1);
+  }
+  25% {
+    opacity: 0.8;
+    transform: translateX(2px) scale(1.1);
+  }
+  75% {
+    opacity: 0.6;
+    transform: translateX(-2px) scale(0.95);
+  }
+}
+
+@keyframes data-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px hsla(214, 84%, 56%, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px hsla(214, 84%, 56%, 0.6), 0 0 30px hsla(214, 84%, 56%, 0.4);
+  }
+}
+
+.animate-ai-pulse {
+  animation: ai-pulse 2s ease-in-out infinite;
+}
+
+.animate-neural-activity {
+  animation: neural-activity 1.5s ease-in-out infinite;
+}
+
+.animate-data-flow {
+  background: linear-gradient(90deg,
+    hsl(214, 84%, 56%) 0%,
+    hsl(214, 84%, 70%) 25%,
+    hsl(214, 84%, 56%) 50%,
+    hsl(214, 84%, 70%) 75%,
+    hsl(214, 84%, 56%) 100%
+  );
+  background-size: 200% 100%;
+  animation: data-flow 3s linear infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+

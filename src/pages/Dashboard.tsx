@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Stepper from "@/components/Stepper";
@@ -6,14 +7,20 @@ import {
   Calendar,
   BookOpen,
   Users,
-  ClipboardList,
   Zap,
   CheckCircle2,
   ArrowRight,
-  TrendingUp,
   Clock,
   AlertCircle,
 } from "lucide-react";
+import {
+  fetchSemestres,
+  fetchDisciplinas,
+  fetchProfessores,
+  fetchAlocacoes,
+  type Semestre,
+} from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const steps = [
   { id: 1, name: "Semestre", description: "Criar ou selecionar" },
@@ -22,38 +29,6 @@ const steps = [
   { id: 4, name: "Professores", description: "Cadastrar ou importar" },
   { id: 5, name: "Ofertas", description: "Gerar ofertas" },
   { id: 6, name: "Alocação", description: "Executar algoritmo" },
-  { id: 7, name: "Resultado", description: "Ajustar e salvar" },
-];
-
-const stats = [
-  {
-    name: "Semestres Ativos",
-    value: "2",
-    icon: Calendar,
-    change: "+1 este mês",
-    changeType: "positive",
-  },
-  {
-    name: "Disciplinas",
-    value: "48",
-    icon: BookOpen,
-    change: "Total cadastradas",
-    changeType: "neutral",
-  },
-  {
-    name: "Professores",
-    value: "23",
-    icon: Users,
-    change: "Disponíveis",
-    changeType: "neutral",
-  },
-  {
-    name: "Alocações",
-    value: "156",
-    icon: CheckCircle2,
-    change: "+12 este semestre",
-    changeType: "positive",
-  },
 ];
 
 const quickActions = [
@@ -106,6 +81,52 @@ const recentActivities = [
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    semestres: 0,
+    semestresAtivos: 0,
+    disciplinas: 0,
+    professores: 0,
+    alocacoes: 0,
+  });
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+
+      // Carregar dados em paralelo
+      const [semestresRes, disciplinasRes, professoresRes, alocacoesRes] = await Promise.all([
+        fetchSemestres({ per_page: 100 }),
+        fetchDisciplinas({ per_page: 1 }), // Só precisamos do total
+        fetchProfessores({ per_page: 1 }), // Só precisamos do total
+        fetchAlocacoes({ per_page: 1 }), // Só precisamos do total
+      ]);
+
+      // Contar semestres ativos (dentro do período atual)
+      const hoje = new Date();
+      const semestresAtivos = semestresRes.data.filter((s: Semestre) => {
+        const inicio = new Date(s.data_inicio);
+        const fim = new Date(s.data_fim);
+        return hoje >= inicio && hoje <= fim;
+      }).length;
+
+      setStats({
+        semestres: semestresRes.total || semestresRes.data.length,
+        semestresAtivos,
+        disciplinas: disciplinasRes.total || 0,
+        professores: professoresRes.total || 0,
+        alocacoes: alocacoesRes.total || 0,
+      });
+    } catch (error) {
+      console.error("Erro ao carregar dados do dashboard:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="p-8 space-y-8 animate-fade-in">
@@ -121,22 +142,93 @@ export default function Dashboard() {
 
       {/* Stats */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.name} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.name}
-              </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">{stat.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stat.change}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+        {/* Semestres Ativos */}
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Semestres Ativos
+            </CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-9 w-16" />
+            ) : (
+              <>
+                <div className="text-3xl font-bold text-foreground">{stats.semestresAtivos}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {stats.semestres} total cadastrados
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Disciplinas */}
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Disciplinas
+            </CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-9 w-16" />
+            ) : (
+              <>
+                <div className="text-3xl font-bold text-foreground">{stats.disciplinas}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Total cadastradas
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Professores */}
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Professores
+            </CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-9 w-16" />
+            ) : (
+              <>
+                <div className="text-3xl font-bold text-foreground">{stats.professores}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Disponíveis
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Alocações */}
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Alocações
+            </CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-9 w-16" />
+            ) : (
+              <>
+                <div className="text-3xl font-bold text-foreground">{stats.alocacoes}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Total realizadas
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Process Stepper */}

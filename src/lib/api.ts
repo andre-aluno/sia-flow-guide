@@ -18,7 +18,7 @@ interface Disciplina {
   }
 }
 
-interface Semestre {
+export interface Semestre {
   id: number;
   nome: string;
   ano: number;
@@ -406,5 +406,212 @@ export async function deleteOferta(id: number): Promise<void> {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.message || `Failed to delete oferta: ${response.statusText}`);
   }
+}
+
+// Algoritmo Genético API
+export interface AGConfigDefaults {
+  tamanho_populacao: number;
+  num_geracoes: number;
+  probabilidade_crossover: number;
+  probabilidade_mutacao: number;
+  elite_size: number;
+  torneio_size: number;
+  seed: number | null;
+}
+
+export interface AGConfigDefaultsResponse {
+  data: AGConfigDefaults;
+  message: string;
+  status: string;
+}
+
+export async function fetchAGConfigDefaults(): Promise<AGConfigDefaultsResponse> {
+  const url = `${API_BASE_URL}/api/ag/config/defaults`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch AG config defaults: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export interface ExecutarAGParams {
+  semestre_nome: string;
+  tamanho_populacao: number;
+  num_geracoes: number;
+  probabilidade_crossover: number;
+  probabilidade_mutacao: number;
+}
+
+export interface AlocacaoItem {
+  idx: number;
+  oferta_id: number;
+  professor_id: number;
+  professor_nome: string;
+  disciplina_nome: string;
+  turma: string;
+  carga_horaria: number;
+  carga_maxima: number;
+  carga_alocada: number;
+  area_disciplina: string;
+  tem_competencia: boolean;
+  nivel_professor: number;
+  nivel_esperado: number;
+  titulacao: string;
+  modelo_contratacao: string;
+  match: string;
+}
+
+export interface DistribuicaoCarga {
+  professor: string;
+  carga_alocada: number;
+  carga_maxima: number;
+  carga_livre: number;
+  percentual_utilizado: number;
+}
+
+export interface EvolucaoFitness {
+  geracoes: number[];
+  media: number[];
+  minimo: number[];
+  maximo: number[];
+  desvio: number[];
+}
+
+export interface AGResultado {
+  semestre: string;
+  tempo_execucao_segundos: number;
+  parametros_utilizados: {
+    tamanho_populacao: number;
+    num_geracoes: number;
+    probabilidade_crossover: number;
+    probabilidade_mutacao: number;
+  };
+  proposta_alocacao: {
+    total_ofertas: number;
+    alocacoes: AlocacaoItem[];
+  };
+  qualidade: {
+    fitness_total: number;
+    penalidades: {
+      incompetencia: number;
+      sobrecarga: number;
+      desbalanceamento: number;
+    };
+  };
+  resumo: {
+    ofertas_totais: number;
+    ofertas_com_match: number;
+    ofertas_sem_match: number;
+    percentual_compatibilidade: number;
+    professores_utilizados: number;
+    total_professores: number;
+    distribuicao_carga: DistribuicaoCarga[];
+    fitness_total: number;
+  };
+  viabilidade: {
+    viavel: boolean;
+    problemas: string[];
+  };
+  evolucao_fitness: EvolucaoFitness;
+}
+
+export interface ExecutarAGResponse {
+  data: AGResultado;
+  message: string;
+  status: string;
+}
+
+export async function executarAG(params: ExecutarAGParams): Promise<ExecutarAGResponse> {
+  const url = `${API_BASE_URL}/api/ag/executar`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(params),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to execute AG: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+// Alocações API
+export interface Alocacao {
+  id: number;
+  oferta_id: number;
+  professor_id: number;
+  oferta?: Oferta;
+  professor?: Professor;
+}
+
+export async function fetchAlocacoes(params: DisciplinasParams = {}): Promise<ApiResponse<Alocacao[]>> {
+  const { page = 1, per_page = 100 } = params;
+  const url = new URL(`${API_BASE_URL}/api/alocacoes`);
+
+  url.searchParams.set('page', page.toString());
+  url.searchParams.set('per_page', per_page.toString());
+
+  const response = await fetch(url.toString());
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch alocacoes: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export interface CreateAlocacaoData {
+  oferta_id: number;
+  professor_id: number;
+}
+
+export interface BulkAlocacaoData {
+  alocacoes: CreateAlocacaoData[];
+}
+
+export async function createAlocacao(data: CreateAlocacaoData): Promise<any> {
+  const url = `${API_BASE_URL}/api/alocacoes`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to create alocacao: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function createBulkAlocacoes(data: BulkAlocacaoData): Promise<any> {
+  const url = `${API_BASE_URL}/api/alocacoes/bulk`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to create bulk alocacoes: ${response.statusText}`);
+  }
+
+  return response.json();
 }
 
