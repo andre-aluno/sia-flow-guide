@@ -50,7 +50,7 @@ import {
 } from "@/components/ui/table";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 
-export default function Alocacao() {
+export default function GerarAlocacao() {
     const [isRunning, setIsRunning] = useState(false);
     const [progress, setProgress] = useState(0);
     const [populacao, setPopulacao] = useState([100]);

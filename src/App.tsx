@@ -9,7 +9,8 @@ import Semestres from "./pages/Semestres";
 import Disciplinas from "./pages/Disciplinas";
 import Professores from "./pages/Professores";
 import Ofertas from "./pages/Ofertas";
-import Alocacao from "./pages/Alocacao";
+import Alocacoes from "./pages/Alocacoes";
+import GerarAlocacao from "./pages/GerarAlocacao.tsx";
 import Areas from "./pages/Areas";
 import NotFound from "./pages/NotFound";
 
@@ -29,7 +30,8 @@ const App = () => (
             <Route path="/disciplinas" element={<Disciplinas />} />
             <Route path="/professores" element={<Professores />} />
             <Route path="/ofertas" element={<Ofertas />} />
-            <Route path="/alocacao" element={<Alocacao />} />
+            <Route path="/alocacoes" element={<Alocacoes />} />
+            <Route path="/gerar-alocacao" element={<GerarAlocacao />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

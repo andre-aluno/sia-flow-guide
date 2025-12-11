@@ -5,6 +5,7 @@ import {
     BookOpen,
     Users,
     ClipboardList,
+    UserCheck,
     Zap,
     Layers
 } from "lucide-react";
@@ -19,7 +20,8 @@ const navigation = [
     {name: "Disciplinas", href: "/disciplinas", icon: BookOpen},
     {name: "Professores", href: "/professores", icon: Users},
     {name: "Ofertas", href: "/ofertas", icon: ClipboardList},
-    {name: "Alocação", href: "/alocacao", icon: Zap},
+    {name: "Gerar Alocação", href: "/gerar-alocacao", icon: Zap},
+    {name: "Alocações", href: "/alocacoes", icon: UserCheck},
 ];
 
 const steps = [
@@ -28,7 +30,8 @@ const steps = [
     {id: 3, name: "Disciplinas", path: "/disciplinas"},
     {id: 4, name: "Professores", path: "/professores"},
     {id: 5, name: "Ofertas", path: "/ofertas"},
-    {id: 6, name: "Alocação", path: "/alocacao"},
+    {id: 6, name: "Gerar Alocação", path: "/gerar-alocacao"},
+    {id: 7, name: "Alocações", path: "/alocacoes"},
 ];
 
 export default function Layout() {

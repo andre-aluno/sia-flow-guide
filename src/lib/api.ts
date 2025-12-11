@@ -2,6 +2,12 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 
 interface ApiResponse<T> {
   data: T;
+  pagination: {
+      page: number;
+      pages: number;
+      per_page: number;
+      total: number;
+  }
   total?: number;
   page?: number;
   per_page?: number;
@@ -610,6 +616,21 @@ export async function createBulkAlocacoes(data: BulkAlocacaoData): Promise<any> 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.message || `Failed to create bulk alocacoes: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function deleteAlocacao(id: number): Promise<any> {
+  const url = `${API_BASE_URL}/api/alocacoes/${id}`;
+
+  const response = await fetch(url, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to delete alocacao: ${response.statusText}`);
   }
 
   return response.json();

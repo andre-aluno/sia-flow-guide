@@ -28,7 +28,8 @@ const steps = [
   { id: 3, name: "Disciplinas", description: "Cadastrar ou importar" },
   { id: 4, name: "Professores", description: "Cadastrar ou importar" },
   { id: 5, name: "Ofertas", description: "Gerar ofertas" },
-  { id: 6, name: "Alocação", description: "Executar algoritmo" },
+  { id: 6, name: "Gerar Alocação", description: "Executar algoritmo" },
+    { id: 7, name: "Alocações", description: "Visualizar alocações" },
 ];
 
 const quickActions = [
@@ -50,7 +51,7 @@ const quickActions = [
     title: "Executar Alocação",
     description: "Rodar algoritmo de alocação",
     icon: Zap,
-    href: "/alocacao",
+    href: "/gerar-alocacao",
     color: "warning",
   },
 ];
@@ -101,9 +102,9 @@ export default function Dashboard() {
       // Carregar dados em paralelo
       const [semestresRes, disciplinasRes, professoresRes, alocacoesRes] = await Promise.all([
         fetchSemestres({ per_page: 100 }),
-        fetchDisciplinas({ per_page: 1 }), // Só precisamos do total
-        fetchProfessores({ per_page: 1 }), // Só precisamos do total
-        fetchAlocacoes({ per_page: 1 }), // Só precisamos do total
+        fetchDisciplinas({ per_page: 100 }), // Só precisamos do total
+        fetchProfessores({ per_page: 100 }), // Só precisamos do total
+        fetchAlocacoes({ per_page: 100 }), // Só precisamos do total
       ]);
 
       // Contar semestres ativos (dentro do período atual)
@@ -115,11 +116,11 @@ export default function Dashboard() {
       }).length;
 
       setStats({
-        semestres: semestresRes.total || semestresRes.data.length,
+        semestres: semestresRes.pagination.total || semestresRes.data.length,
         semestresAtivos,
-        disciplinas: disciplinasRes.total || 0,
-        professores: professoresRes.total || 0,
-        alocacoes: alocacoesRes.total || 0,
+        disciplinas: disciplinasRes.pagination.total || 0,
+        professores: professoresRes.pagination.total || 0,
+        alocacoes: alocacoesRes.pagination.total || 0,
       });
     } catch (error) {
       console.error("Erro ao carregar dados do dashboard:", error);
