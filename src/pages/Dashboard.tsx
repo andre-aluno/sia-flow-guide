@@ -330,12 +330,18 @@ export default function Dashboard() {
                 Precisa de ajuda?
               </h3>
               <p className="text-sm text-muted-foreground">
-                Consulte nossa documentação ou entre em contato com o suporte
+                Reinicie o tour guiado para rever o fluxo completo de alocação passo a passo.
               </p>
             </div>
           </div>
-          <Button variant="outline">
-            Acessar Documentação
+          <Button
+            variant="outline"
+            onClick={() => {
+              localStorage.removeItem("sia_tour_v1");
+              window.location.reload();
+            }}
+          >
+            Reiniciar Tour
           </Button>
         </CardContent>
       </Card>
