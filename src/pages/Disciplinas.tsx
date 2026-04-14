@@ -209,7 +209,7 @@ export default function Disciplinas() {
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90">
+              <Button data-tour="create-btn" className="bg-primary hover:bg-primary/90">
                 <Plus className="mr-2 h-4 w-4" />
                 Nova Disciplina
               </Button>
@@ -374,7 +374,7 @@ export default function Disciplinas() {
       </div>
 
       {/* Search and Table */}
-      <Card>
+      <Card data-tour="data-list">
         <CardContent className="pt-6">
           <div className="flex items-center gap-4 mb-6">
             <div className="relative flex-1">

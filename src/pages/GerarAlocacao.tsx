@@ -275,6 +275,7 @@ export default function GerarAlocacao() {
                     </p>
                 </div>
                 <Button
+                    data-tour="execute-btn"
                     onClick={handleExecutar}
                     disabled={isRunning}
                     className="bg-warning text-warning-foreground hover:bg-warning/90 relative overflow-hidden"
@@ -296,7 +297,7 @@ export default function GerarAlocacao() {
 
             <div className="grid gap-6 md:grid-cols-2">
                 {/* Configurações */}
-                <Card>
+                <Card data-tour="config-card">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Settings className="h-5 w-5 text-primary"/>
@@ -398,7 +399,7 @@ export default function GerarAlocacao() {
                 </Card>
 
                 {/* Status */}
-                <Card>
+                <Card data-tour="status-card">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Zap className="h-5 w-5 text-warning"/>

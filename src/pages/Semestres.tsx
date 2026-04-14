@@ -182,7 +182,7 @@ export default function Semestres() {
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button className="bg-primary hover:bg-primary/90">
+                        <Button data-tour="create-btn" className="bg-primary hover:bg-primary/90">
                             <Plus className="mr-2 h-4 w-4"/>
                             Novo Semestre
                         </Button>
@@ -313,6 +313,7 @@ export default function Semestres() {
             </div>
 
             {/* Loading State */}
+            <div data-tour="data-list">
             {isLoading ? (
                 <div className="flex justify-center items-center py-12">
                     <Loader2 className="h-8 w-8 animate-spin"/>
@@ -383,6 +384,7 @@ export default function Semestres() {
                     )}
                 </div>
             )}
+            </div>
         </div>
     );
 }

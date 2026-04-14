@@ -144,7 +144,7 @@ export default function Areas() {
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button className="bg-primary hover:bg-primary/90">
+                        <Button data-tour="create-btn" className="bg-primary hover:bg-primary/90">
                             <Plus className="mr-2 h-4 w-4" />
                             Nova Área
                         </Button>
@@ -207,6 +207,7 @@ export default function Areas() {
             </Card>
 
             {/* Loading State */}
+            <div data-tour="data-list">
             {isLoading ? (
                 <div className="flex justify-center items-center py-12">
                     <Loader2 className="h-8 w-8 animate-spin" />
@@ -274,6 +275,7 @@ export default function Areas() {
                     )}
                 </div>
             )}
+            </div>
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog open={deletingId !== null} onOpenChange={(open) => !open && setDeletingId(null)}>

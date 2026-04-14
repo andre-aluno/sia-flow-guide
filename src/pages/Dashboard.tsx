@@ -233,7 +233,7 @@ export default function Dashboard() {
       </div>
 
       {/* Process Stepper */}
-      <Card className="shadow-md">
+      <Card data-tour="process-stepper" className="shadow-md">
         <CardHeader>
           <CardTitle className="text-xl">Processo de Alocação</CardTitle>
           <CardDescription>

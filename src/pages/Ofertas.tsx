@@ -160,7 +160,7 @@ export default function Ofertas() {
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90">
+              <Button data-tour="create-btn" className="bg-primary hover:bg-primary/90">
                 <Plus className="mr-2 h-4 w-4" />
                 Nova Oferta
               </Button>
@@ -340,7 +340,7 @@ export default function Ofertas() {
       </Card>
 
       {/* Ofertas List */}
-      <Card>
+      <Card data-tour="data-list">
         <CardContent className="pt-6">
           {isLoading ? (
             <div className="flex justify-center items-center py-8">

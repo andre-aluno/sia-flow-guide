@@ -21,7 +21,7 @@ export default function MiniStepper({ steps, currentStep, onNext, onPrevious }: 
   const progressPercentage = (currentStep / steps.length) * 100;
 
   return (
-    <div className="sticky top-0 z-50 bg-background/98 backdrop-blur-sm border-b border-border shadow-sm">
+    <div data-tour="mini-stepper" className="sticky top-0 z-50 bg-background/98 backdrop-blur-sm border-b border-border shadow-sm">
       <div className="flex items-center justify-between gap-4 px-6 py-3">
         {/* Previous Button */}
         <Button

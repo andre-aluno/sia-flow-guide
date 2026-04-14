@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import {cn} from "@/lib/utils";
 import MiniStepper from "./MiniStepper";
+import {GuidedTour} from "./GuidedTour";
 import logoCimatec from "@/assets/logo-cimatec.png";
 
 const navigation = [
@@ -76,7 +77,7 @@ export default function Layout() {
                 </div>
 
                 {/* Navigation - scrollable if needed */}
-                <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+                <nav data-tour="sidebar" className="flex-1 p-4 space-y-1 overflow-y-auto">
                     {navigation.map((item) => {
                         const isActive = location.pathname === item.href;
                         return (
@@ -131,6 +132,7 @@ export default function Layout() {
                 <div className="flex-1">
                     <Outlet/>
                 </div>
+                <GuidedTour />
             </main>
         </div>
     );

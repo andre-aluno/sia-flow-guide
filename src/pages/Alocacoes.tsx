@@ -166,7 +166,7 @@ export default function Alocacoes() {
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
+            <Button data-tour="create-btn" className="gap-2">
               <Plus className="h-4 w-4" />
               Nova Alocação
             </Button>
@@ -313,7 +313,7 @@ export default function Alocacoes() {
       </Card>
 
       {/* Table */}
-      <Card>
+      <Card data-tour="data-list">
         <CardContent className="pt-6">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
