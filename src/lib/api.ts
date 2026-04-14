@@ -174,6 +174,19 @@ export async function updateSemestre(id: number, data: CreateSemestreData): Prom
   return response.json();
 }
 
+export async function deleteSemestre(id: number): Promise<void> {
+  const url = `${API_BASE_URL}/api/semestres/${id}`;
+
+  const response = await fetch(url, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to delete semestre: ${response.statusText}`);
+  }
+}
+
 // Areas API
 export interface Area {
   id: number;

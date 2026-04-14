@@ -13,9 +13,19 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {Plus, Calendar, Edit2, Trash2, Loader2, CheckCircle} from "lucide-react";
 import {toast} from "sonner";
-import {fetchSemestres, createSemestre, updateSemestre, CreateSemestreData} from "@/lib/api";
+import {fetchSemestres, createSemestre, updateSemestre, deleteSemestre, CreateSemestreData} from "@/lib/api";
 import {Badge} from "@/components/ui/badge";
 
 interface Semestre {
@@ -30,6 +40,7 @@ interface Semestre {
 export default function Semestres() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
     const [formData, setFormData] = useState({
         nome: "",
         ano: new Date().getFullYear(),
@@ -66,6 +77,19 @@ export default function Semestres() {
         },
         onError: (error: Error) => {
             toast.error(`Erro ao atualizar semestre: ${error.message}`);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: deleteSemestre,
+        onSuccess: () => {
+            toast.success("Semestre excluído com sucesso!");
+            queryClient.invalidateQueries({queryKey: ['semestres']});
+            setDeletingId(null);
+        },
+        onError: (error: Error) => {
+            toast.error(`Erro ao excluir semestre: ${error.message}`);
+            setDeletingId(null);
         },
     });
 
@@ -123,9 +147,8 @@ export default function Semestres() {
         }
     };
 
-    const handleDelete = (_id: number) => {
-        // TODO: Implement API call to delete semester
-        toast.success("Funcionalidade de exclusão será implementada!");
+    const handleDelete = (id: number) => {
+        setDeletingId(id);
     };
 
     const formatDate = (dateString: string) => {
@@ -385,6 +408,30 @@ export default function Semestres() {
                 </div>
             )}
             </div>
+
+            <AlertDialog open={deletingId !== null} onOpenChange={(open) => !open && setDeletingId(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Tem certeza que deseja excluir este semestre? Esta ação não pode ser desfeita e pode afetar ofertas e alocações vinculadas a ele.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => deletingId !== null && deleteMutation.mutate(deletingId)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            {deleteMutation.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin"/>
+                            ) : (
+                                "Excluir"
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
